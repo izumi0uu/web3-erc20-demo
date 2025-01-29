@@ -1,0 +1,18 @@
+### terminal
+
+使用powershell
+
+### 项目说明
+
+这是一个ERC20合约的demo，用于练习dapp开发。
+
+### 项目结构
+
+
+```
+web3-erc20-demo/
+├── contracts/
+├── frontend/
+├── README.md
+```
+
