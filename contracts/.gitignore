@@ -12,3 +12,9 @@ docs/
 
 # Dotenv file
 .env
+
+# contracts
+lib/
+lib/forge-std/
+.github/
+
