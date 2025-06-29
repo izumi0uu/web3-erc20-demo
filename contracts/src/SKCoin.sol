@@ -2,27 +2,173 @@
 // Compatible with OpenZeppelin Contracts ^5.0.0
 pragma solidity ^0.8.20;
 
+/*
+ * ===================================================================
+ * SKCoin 智能合约 - ERC20代币合约完整教学版
+ * ===================================================================
+ * 
+ * 这是一个基于以太坊区块链的ERC20标准代币合约
+ * 
+ * 什么是ERC20？
+ * - ERC20是以太坊上最常见的代币标准，就像是制作代币的"标准模板"
+ * - 它规定了代币必须有哪些功能，比如转账、查询余额等
+ * - 遵循这个标准的代币可以在各种钱包和交易所中使用
+ * 
+ * 这个合约的主要功能：
+ * 1. 创建名为"SKCoin"的代币，符号是"SKC"
+ * 2. 只有合约的拥有者可以铸造（创造）新的代币
+ * 3. 只有合约的拥有者可以销毁（燃烧）代币
+ * 4. 记录每次铸造和销毁的操作
+ * 
+ * 为什么要学习这个？
+ * - 理解区块链代币的基本原理
+ * - 学会如何创建自己的数字货币
+ * - 掌握智能合约的基础知识
+ */
+
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
+/*
+ * 导入说明：
+ * - ERC20: OpenZeppelin提供的标准ERC20代币实现，包含了转账、余额查询等基础功能
+ * - Ownable: 提供所有权管理功能，确保只有合约拥有者才能执行某些操作
+ * 
+ * OpenZeppelin是什么？
+ * - 它是区块链开发中最受信任的智能合约库
+ * - 提供了经过安全审计的标准合约模板
+ * - 就像是搭积木一样，我们可以直接使用这些安全的"积木"来构建我们的合约
+ */
+
 contract SKCoin is ERC20, Ownable {
-    event Mint(uint256 indexed amount, address indexed minter);
-    event Burn(uint256 indexed amount, address indexed burner);
+    /*
+     * 继承说明：
+     * - "is ERC20" 表示我们的SKCoin继承了ERC20的所有功能
+     * - "is Ownable" 表示我们的合约有所有权管理功能
+     * - 这就像是说"SKCoin既是一个ERC20代币，也是一个有主人的合约"
+     */
 
-    string public _name = "SKCoin";
-    string public _symbol = "SKC";
+    // 事件定义 - 用于记录重要操作，就像是区块链上的"日记本"
+    event Mint(uint256 indexed amount, address indexed minter);  // 铸造事件：记录铸造了多少代币，谁进行的铸造
+    event Burn(uint256 indexed amount, address indexed burner);  // 销毁事件：记录销毁了多少代币，谁进行的销毁
 
-    constructor(address initialOwner) ERC20(_name, _symbol) Ownable(initialOwner) {}
+    /*
+     * 事件的作用：
+     * - 在区块链上永久记录重要操作
+     * - 前端应用可以监听这些事件来更新界面
+     * - 用户可以查看历史记录
+     * - indexed关键字让事件可以被高效搜索
+     */
+
+    // 代币的基本信息
+    string public _name = "SKCoin";    // 代币全名：SKCoin
+    string public _symbol = "SKC";     // 代币符号：SKC（就像美元的符号是$）
+
+    /*
+     * 为什么要定义名称和符号？
+     * - 名称让人们知道这是什么代币
+     * - 符号是代币的简短标识，在交易所和钱包中显示
+     * - public关键字表示任何人都可以查看这些信息
+     */
+
+    constructor(address initialOwner) ERC20(_name, _symbol) Ownable(initialOwner) {
+        /*
+         * 构造函数 - 合约部署时执行的特殊函数
+         * 
+         * 参数说明：
+         * - initialOwner: 合约的初始拥有者地址
+         * 
+         * 执行过程：
+         * 1. ERC20(_name, _symbol) 初始化ERC20代币，设置名称和符号
+         * 2. Ownable(initialOwner) 设置合约的拥有者
+         * 
+         * 为什么需要设置拥有者？
+         * - 只有拥有者才能铸造和销毁代币
+         * - 这样可以防止任何人随意创造代币，保证代币的价值
+         * - 就像是只有央行才能印钞票一样
+         */
+    }
 
     function mint(uint256 _amount) public onlyOwner {
-        _mint(owner(), _amount);
+        /*
+         * 铸造函数 - 创造新的代币
+         * 
+         * 参数：
+         * - _amount: 要铸造的代币数量
+         * 
+         * 修饰符：
+         * - public: 任何人都可以调用这个函数
+         * - onlyOwner: 但只有合约拥有者才能成功执行
+         */
+        
+        _mint(owner(), _amount);  // 将新铸造的代币分配给合约拥有者
+        
+        /*
+         * _mint函数说明：
+         * - 这是ERC20标准中的内部函数
+         * - owner()返回合约拥有者的地址
+         * - 铸造出的代币会直接添加到拥有者的账户中
+         * - 同时会增加代币的总供应量
+         */
 
-        emit Mint(_amount, _msgSender());
+        emit Mint(_amount, _msgSender());  // 发出铸造事件，记录这次操作
+        
+        /*
+         * 事件发出说明：
+         * - _msgSender()是OpenZeppelin提供的安全函数，返回调用者地址
+         * - 虽然只有拥有者能调用，但记录实际调用者更准确
+         * - 这个事件会被永久记录在区块链上
+         */
     }
 
     function burn(uint256 _amount) public onlyOwner {
-        _burn(_msgSender(), _amount);
+        /*
+         * 销毁函数 - 永久删除代币
+         * 
+         * 参数：
+         * - _amount: 要销毁的代币数量
+         * 
+         * 为什么需要销毁功能？
+         * - 可以减少代币的总供应量
+         * - 在某些经济模型中，销毁代币可以增加剩余代币的稀缺性
+         * - 提供灵活的代币管理机制
+         */
+        
+        _burn(_msgSender(), _amount);  // 从调用者账户中销毁指定数量的代币
+        
+        /*
+         * _burn函数说明：
+         * - 这是ERC20标准中的内部函数
+         * - 会检查调用者是否有足够的代币余额
+         * - 如果余额不足，交易会失败并回滚
+         * - 成功后会减少调用者余额和总供应量
+         */
 
-        emit Burn(_amount, _msgSender());
+        emit Burn(_amount, _msgSender());  // 发出销毁事件，记录这次操作
     }
 }
+
+/*
+ * ===================================================================
+ * 合约总结
+ * ===================================================================
+ * 
+ * 这个SKCoin合约实现了一个简单但完整的ERC20代币，具有以下特点：
+ * 
+ * 1. 标准兼容性：完全符合ERC20标准，可以在任何支持ERC20的平台使用
+ * 2. 所有权控制：只有合约拥有者可以铸造和销毁代币
+ * 3. 事件记录：所有重要操作都会在区块链上留下记录
+ * 4. 安全性：使用OpenZeppelin的经过审计的代码库
+ * 
+ * 学习要点：
+ * - 理解继承的概念：我们的合约继承了ERC20和Ownable的功能
+ * - 理解修饰符：onlyOwner确保只有拥有者能执行某些操作
+ * - 理解事件：用于记录和通知重要的合约状态变化
+ * - 理解构造函数：合约部署时的初始化过程
+ * 
+ * 实际应用场景：
+ * - 公司代币：企业可以发行自己的代币用于奖励或支付
+ * - 游戏代币：游戏中的虚拟货币
+ * - 社区代币：社区治理和激励机制
+ * - 实验项目：学习区块链开发的练习项目
+ */
